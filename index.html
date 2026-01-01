@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>英検1級 長文読解（空所補充）ランダム出題</title>
+
+  <style>
+    :root{
+      --border:#e5e7eb; --text:#111827; --muted:#6b7280;
+      --ok:#16a34a; --ng:#dc2626; --bg:#fafafa;
+      --card:#ffffff; --shadow: 0 1px 0 rgba(0,0,0,.02);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif;
+      margin:0; color:var(--text); background:var(--bg);
+    }
+    header{
+      position: sticky; top:0; z-index:10;
+      background:white; border-bottom:1px solid var(--border);
+    }
+    .wrap{ max-width: 980px; margin:0 auto; padding: 14px 16px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    h1{ font-size:16px; margin:0; }
+    .meta{ color:var(--muted); font-size:12px; margin-top:4px; }
+    button{
+      border:1px solid var(--border); background:white; padding:10px 12px;
+      border-radius:12px; cursor:pointer; font-weight:700;
+    }
+    button:hover{ background:#f3f4f6; }
+    button.primary{ background:#111827; color:white; border-color:#111827; }
+    button.primary:hover{ background:#0b1220; }
+    button.ghost{ background:#fff; }
+    .grid{
+      display:grid; grid-template-columns: 1fr; gap:12px;
+      padding:14px 16px 22px; max-width:980px; margin:0 auto;
+    }
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:16px;
+      padding:14px; box-shadow:var(--shadow);
+    }
+    .title{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+    .title h2{ margin:0; font-size:18px; }
+    .badge{ font-size:12px; color:var(--muted); }
+    .passageBox{
+      height:52vh; overflow-y:auto; padding:14px;
+      border:1px solid var(--border); border-radius:14px;
+      line-height:1.85; background:#fcfcfd;
+    }
+    .passageBox p{ margin:0 0 10px 0; }
+    .blank{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:2px 10px; margin:0 2px; border-radius:999px;
+      border:1px dashed #9ca3af; background:#fff; font-weight:900;
+      cursor:pointer; user-select:none;
+    }
+    .blank.active{ outline:3px solid rgba(17,24,39,.15); border-style:solid; }
+    .blank.ok{ border-color:var(--ok); background:rgba(22,163,74,.08); }
+    .blank.ng{ border-color:var(--ng); background:rgba(220,38,38,.08); }
+
+    .optionsArea{ display:grid; grid-template-columns:1fr; gap:12px; }
+    .qblock{ border:1px solid var(--border); border-radius:14px; padding:12px; }
+    .qhead{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .qnum{ font-weight:900; }
+    .hint{ color:var(--muted); font-size:12px; }
+    label.opt{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px; border-radius:12px; border:1px solid var(--border);
+      cursor:pointer; margin-bottom:8px;
+    }
+    label.opt:hover{ background:#f9fafb; }
+    .resultLine{ margin-top:10px; font-size:14px; }
+    .okText{ color:var(--ok); font-weight:900; }
+    .ngText{ color:var(--ng); font-weight:900; }
+    details{ margin-top:8px; }
+    summary{ cursor:pointer; color:#111827; font-weight:900; }
+    .explain{ color:var(--muted); font-size:13px; margin-top:6px; line-height:1.75; white-space:pre-wrap; }
+    .footerBar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .small{ font-size:12px; color:var(--muted); }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px; border:1px solid var(--border); padding:2px 6px; border-radius:8px; background:#fff;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border); padding:6px 10px; border-radius:999px;
+      font-size:12px; color:var(--muted);
+      background:#fff;
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed; inset:0; background:rgba(17,24,39,.55);
+      display:none; align-items:center; justify-content:center; z-index:50;
+      padding:18px;
+    }
+    .modalOverlay.open{ display:flex; }
+    .modal{
+      width:min(980px, 100%);
+      max-height: calc(100vh - 36px);
+      background:#fff; border:1px solid var(--border); border-radius:16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .modalHeader{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 14px; border-bottom:1px solid var(--border);
+      background:#fff;
+    }
+    .modalTitle{ font-weight:900; }
+    .modalBody{
+      padding:14px; overflow:auto; max-height: calc(100vh - 140px);
+      line-height:1.8;
+    }
+    .modalBody p{ margin:0 0 10px 0; }
+    .modalFooter{
+      padding:12px 14px; border-top:1px solid var(--border);
+      display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap;
+      background:#fff;
+    }
+    .vocabList{ display:grid; gap:10px; }
+    .vocabItem{
+      border:1px solid var(--border); border-radius:14px; padding:12px;
+      display:grid; gap:6px;
+    }
+    .vTop{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .vTerm{ font-weight:900; font-size:16px; }
+    .vJp{ color:var(--muted); font-size:13px; }
+    .vEx{ color:#374151; font-size:13px; }
+    .btnRow{ display:flex; gap:8px; flex-wrap:wrap; }
+    .btnTiny{
+      border:1px solid var(--border); background:#fff; padding:6px 10px;
+      border-radius:12px; cursor:pointer; font-weight:800; font-size:12px;
+    }
+    .btnTiny:hover{ background:#f3f4f6; }
+    .warn{
+      border:1px solid #fde68a; background:#fffbeb; color:#92400e;
+      padding:10px 12px; border-radius:14px; font-size:12px; line-height:1.6;
+    }
+
+    @media (min-width: 980px){
+      .grid{ grid-template-columns: 1.15fr .85fr; align-items:start; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content: space-between;">
+      <div style="min-width: 260px;">
+        <h1>英検1級 長文読解（空所補充）ランダム出題</h1>
+        <div class="meta">
+          本文はスクロールで読めます。空所（(23)など）をクリックすると、その問題へジャンプ。
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="btnNew" class="primary">新しい問題（ランダム）</button>
+        <button id="btnCheck">採点</button>
+        <button id="btnReset">リセット</button>
+        <button id="btnVocab" class="ghost">重要単語・フレーズ</button>
+        <button id="btnJP" class="ghost">本文和訳</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 10px;">
+      <span class="pill">ショートカット：<span class="kbd">N</span> 新規 / <span class="kbd">C</span> 採点 / <span class="kbd">R</span> リセット / <span class="kbd">V</span> 単語 / <span class="kbd">J</span> 和訳</span>
+      <span class="pill" id="speechState">🔊 音声：準備中…</span>
+    </div>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <div class="title">
+      <h2 id="setTitle">—</h2>
+      <div class="badge" id="setMeta">—</div>
+    </div>
+
+    <div class="passageBox" id="passage"></div>
+
+    <div class="footerBar" style="margin-top:12px;">
+      <div class="small">
+        使い方：①空所を埋める → ②「採点」 → ③解説で根拠確認 → ④「新しい問題」で周回
+      </div>
+      <div class="small" id="overallResult"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin:0 0 10px 0; font-size: 16px;">選択肢</h2>
+    <div class="optionsArea" id="options"></div>
+  </section>
+</main>
+
+<!-- Vocab Modal -->
+<div class="modalOverlay" id="vocabOverlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalHeader">
+      <div class="modalTitle" id="vocabTitle">重要単語・フレーズ</div>
+      <button class="btnTiny" id="btnCloseVocab">閉じる</button>
+    </div>
+    <div class="modalBody">
+      <div class="warn" style="margin-bottom:12px;">
+        🔊 音声はブラウザ内蔵（Web Speech API）です。<b>環境によって英語音声の質が変わります</b>（Chrome推奨）。
+        音が出ないときは「サイレント/ミュート」や「ページの音声許可」を確認してね。
+      </div>
+      <div class="btnRow" style="margin-bottom:12px;">
+        <button class="btnTiny" id="btnSpeakAllTerms">単語だけ連続再生</button>
+        <button class="btnTiny" id="btnSpeakAllWithExamples">単語＋例文を連続再生</button>
+        <button class="btnTiny" id="btnStopSpeech">停止</button>
+      </div>
+      <div class="vocabList" id="vocabList"></div>
+    </div>
+    <div class="modalFooter">
+      <div class="small">Tip：単語→例文の順で聞くと“定着”しやすい。</div>
+      <div class="small">※音声が重いときは「単語だけ連続再生」がおすすめ</div>
+    </div>
+  </div>
+</div>
+
+<!-- JP Modal -->
+<div class="modalOverlay" id="jpOverlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalHeader">
+      <div class="modalTitle" id="jpTitle">本文和訳</div>
+      <button class="btnTiny" id="btnCloseJP">閉じる</button>
+    </div>
+    <div class="modalBody" id="jpBody"></div>
+    <div class="modalFooter">
+      <div class="small">精読のコツ：和訳→原文に戻って「なぜその訳になるか」まで辿る。</div>
+      <div class="btnRow">
+        <button class="btnTiny" id="btnSpeakJPNote">読み方の音声（英語）</button>
+        <button class="btnTiny" id="btnStopSpeech2">停止</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/**
+ * ✅ 10セット収録：ランダム抽選＋選択肢シャッフル
+ * ✅ 採点後：より詳しい解説 +（あれば）誤答の理由も表示
+ * ✅ 重要単語・フレーズ：モーダル表示 + 音声（Web Speech API）
+ * ✅ 本文和訳：モーダル表示
+ */
+
+// -------------------- Utils --------------------
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+const countWords = (text) => {
+  const cleaned = text
+    .replace(/\{\s*\d+\s*\}/g, " ")
+    .replace(/\(\d+\)/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const m = cleaned.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g);
+  return (m || []).length;
+};
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+}
+
+// -------------------- Speech (Web Speech API) --------------------
+let voicesReady = false;
+let cachedVoices = [];
+
+const elSpeechState = document.getElementById("speechState");
+
+function pickEnglishVoice() {
+  if (!cachedVoices.length) return null;
+  const preferred = cachedVoices.find(v =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    /google|natural|enhanced/i.test(v.name || "")
+  );
+  if (preferred) return preferred;
+
+  const en = cachedVoices.find(v => (v.lang || "").toLowerCase().startsWith("en"));
+  return en || null;
+}
+
+function refreshVoices() {
+  if (!("speechSynthesis" in window)) {
+    elSpeechState.textContent = "🔇 音声：非対応ブラウザ";
+    return;
+  }
+  cachedVoices = speechSynthesis.getVoices() || [];
+  if (cachedVoices.length) {
+    voicesReady = true;
+    const v = pickEnglishVoice();
+    elSpeechState.textContent = v ? `🔊 音声：${v.lang} / ${v.name}` : "🔊 音声：利用可能";
+  }
+}
+
+if ("speechSynthesis" in window) {
+  speechSynthesis.onvoiceschanged = refreshVoices;
+  refreshVoices();
+} else {
+  elSpeechState.textContent = "🔇 音声：非対応ブラウザ";
+}
+
+function stopSpeech() {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+}
+
+function speakText(text, {rate=1.0, pitch=1.0, lang="en-US"} = {}) {
+  if (!("speechSynthesis" in window)) return false;
+  stopSpeech();
+  const ut = new SpeechSynthesisUtterance(text);
+  ut.rate = rate; ut.pitch = pitch; ut.lang = lang;
+  const voice = pickEnglishVoice();
+  if (voice) ut.voice = voice;
+  speechSynthesis.speak(ut);
+  return true;
+}
+
+function speakQueue(texts, {rate=1.0, pitch=1.0, lang="en-US"} = {}) {
+  if (!("speechSynthesis" in window)) return false;
+  stopSpeech();
+  let idx = 0;
+
+  const next = () => {
+    if (idx >= texts.length) return;
+    const ut = new SpeechSynthesisUtterance(texts[idx]);
+    ut.rate = rate; ut.pitch = pitch; ut.lang = lang;
+    const voice = pickEnglishVoice();
+    if (voice) ut.voice = voice;
+    ut.onend = () => { idx++; next(); };
+    ut.onerror = () => { idx++; next(); };
+    speechSynthesis.speak(ut);
+  };
+  next();
+  return true;
+}
+
+// -------------------- Problem Bank (10 sets) --------------------
+const problemBank = [
+  // --------- (1) ----------
+  {
+    title: "The Silent Infrastructure",
+    level: "Eiken Grade 1",
+    topic: "Cities / Public policy",
+    startNo: 23,
+    passage: [
+      `For decades, many cities treated infrastructure as an invisible background: pipes stayed underground, bridges blended into the skyline, and public maintenance seldom earned political attention. This “out of sight, out of mind” attitude worked—until it didn’t. As roads aged and water systems leaked, minor defects accumulated into expensive emergencies. Yet what made the problem harder was not merely the physical decay. Officials often discovered that ( {23} ). When budgets were drawn up, the incentives favored new projects that could be photographed at ribbon-cuttings, while routine inspection and repair were postponed as “tomorrow’s issue.”`,
+      `A second complication is that infrastructure failure rarely respects administrative boundaries. A commuter line may cross several municipalities; a river basin may supply multiple towns; an aging electrical grid may serve millions who vote in different districts. In practice, this means coordination costs can be enormous. If one city invests heavily but its neighbors do not, the benefits may be diluted. Consequently, reformers argue that sustainable maintenance requires ( {24} ), not sporadic bursts of spending after a disaster.`,
+      `Still, there is reason for cautious optimism. Advances in sensor networks allow engineers to monitor vibration, corrosion, and pressure changes in real time. These tools help identify weak points before they become catastrophes. Critics, however, warn that technology alone cannot fix governance. Data may reveal what is breaking, but it cannot decide whose taxes should pay for repairs or how costs should be shared. In other words, the bottleneck is frequently political. Unless leaders build trust and communicate trade-offs clearly, cities may ( {25} )—postponing difficult choices until breakdowns force everyone’s hand.`
+    ],
+    passage_jp: [
+      `何十年もの間、多くの都市はインフラを「見えない背景」のように扱ってきた。配管は地下にあり、橋は景観に溶け込み、保守点検は政治的な注目を集めにくい。「見えないものは忘れられる」という姿勢は、うまく回っている間は問題にならなかった。しかし道路の老朽化や水道の漏水が進むと、小さな欠陥が積み重なって高額な緊急対応に発展する。しかも難しさは物理的劣化だけではない。行政担当者はしばしば（23）ことに気づく。予算編成では、テープカットで写真映えする新規事業が優先され、日常の点検や修繕は「明日の課題」として先送りされがちだ。`,
+      `第二の厄介さは、インフラの故障が行政境界をほとんど尊重しないことだ。通勤路線は複数自治体をまたぎ、流域は複数の町に水を供給し、老朽化した電力網は別々の選挙区に住む何百万人にも影響する。つまり調整コストが巨大になり得る。ある都市が多額を投資しても隣が投資しなければ効果は薄まる。だから改革派は、持続的な維持管理には災害後の場当たり的支出ではなく（24）が必要だと主張する。`,
+      `それでも慎重な楽観材料はある。センサー網の進歩で、振動・腐食・圧力変化をリアルタイムで監視でき、弱点を事故の前に特定できる。しかし批判者は、技術だけでは統治の問題は解決しないと警告する。データは何が壊れているかは示せても、誰の税金で直すか、費用負担をどう分けるかは決められない。つまりボトルネックは政治であることが多い。指導者が信頼を築き、トレードオフを説明できなければ、都市は（25）—破綻が全員を巻き込むまで難しい決断を先送りする—かもしれない。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: [
+          "the incentives were misaligned from the start",
+          "the damage could be fixed with a single policy",
+          "citizens demanded frequent ribbon-cuttings",
+          "engineers refused to share information"
+        ],
+        answer: "the incentives were misaligned from the start",
+        explanation:
+`【読みの軸】“物理的な劣化だけが原因ではない”→原因が「仕組み（政治・予算）の方」に移る。
+
+【直後のヒント】
+- “When budgets were drawn up, the incentives favored new projects...”
+  ＝予算の仕組みが「新規・見栄え」に寄っている
+
+【だから】
+問題の核心は「最初からインセンティブがズレている」。
+→ misaligned（噛み合ってない）が一番きれいに繋がる。`,
+        why_wrong: {
+          "the damage could be fixed with a single policy": "本文は“単発の政策”で済む話ではなく、構造的な先送りを問題視。",
+          "citizens demanded frequent ribbon-cuttings": "リボンカットは政治側の incentives の説明で、市民要求とは言っていない。",
+          "engineers refused to share information": "情報共有拒否の話は本文に根拠がない。"
+        }
+      },
+      {
+        id: 24,
+        options: [
+          "predictable funding and shared standards",
+          "a ban on new construction projects",
+          "privatization of all transit systems",
+          "perfect forecasts of natural disasters"
+        ],
+        answer: "predictable funding and shared standards",
+        explanation:
+`【読みの軸】行政境界をまたぐ→“協調コスト”がでかい→一部だけ頑張っても効果が薄い。
+
+【直前のヒント】
+- “coordination costs can be enormous”
+- “benefits may be diluted”
+
+【だから】
+継続的な維持管理には
+(1) 安定した財源（predictable funding）
+(2) 共通基準（shared standards）
+が必要、という流れが自然。`,
+        why_wrong: {
+          "a ban on new construction projects": "新規全面禁止は極端。本文は“維持管理の仕組み化”が主題。",
+          "privatization of all transit systems": "民営化を示唆する根拠がない。",
+          "perfect forecasts of natural disasters": "予測が完璧でも“境界問題/調整”は解決しない。"
+        }
+      },
+      {
+        id: 25,
+        options: [
+          "fall back into short-termism",
+          "solve the problem automatically",
+          "make repairs free of controversy",
+          "eliminate the need for leadership"
+        ],
+        answer: "fall back into short-termism",
+        explanation:
+`【読みの軸】技術ではなく“政治”がボトルネック。
+
+【直後のヒント】
+- “postponing difficult choices...”
+  ＝先送りの癖に戻る
+
+【だから】
+短期志向（short-termism）に“戻る”が一番ハマる。`,
+        why_wrong: {
+          "solve the problem automatically": "“technology alone cannot fix governance” と逆。",
+          "make repairs free of controversy": "税負担などで揉める＝controversy は避けにくいと示唆。",
+          "eliminate the need for leadership": "リーダーの信頼構築が必要と言っているので逆。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "out of sight, out of mind", jp: "見えないものは忘れられる", ex: "Maintenance suffers under an out-of-sight, out-of-mind mindset." },
+      { term: "incentives", jp: "（行動を左右する）誘因", ex: "Incentives often favor visible new projects." },
+      { term: "routine inspection", jp: "定期点検", ex: "Routine inspection prevents costly failures." },
+      { term: "dilute", jp: "薄める／効果を弱める", ex: "Benefits can be diluted when coordination fails." },
+      { term: "sensor network", jp: "センサー網", ex: "Sensor networks detect problems early." },
+      { term: "bottleneck", jp: "ボトルネック", ex: "Politics can be the real bottleneck." },
+      { term: "trade-off", jp: "トレードオフ", ex: "Leaders must explain trade-offs clearly." },
+      { term: "short-termism", jp: "短期志向", ex: "Short-termism delays necessary repairs." }
+    ]
+  },
+
+  // --------- (2) ----------
+  {
+    title: "The Memory of Markets",
+    level: "Eiken Grade 1",
+    topic: "Economics / Behavioral science",
+    startNo: 23,
+    passage: [
+      `Investors often describe markets as if they were rational machines that absorb information and output correct prices. In reality, markets are also social arenas where stories compete. When a compelling narrative takes hold—about a breakthrough technology or an impending collapse—participants may act in ways that amplify the tale. This does not mean that fundamentals are irrelevant; rather, it suggests that perception can temporarily outrun reality. In such phases, analysts notice that ( {23} ), because past returns are treated as proof of future success.`,
+      `The trouble is that narratives rarely disappear cleanly. Even after prices correct, the emotional imprint can persist. Some investors avoid entire sectors for years, not because the data condemn them, but because prior losses feel personal. Meanwhile, institutions—banks, funds, regulators—also “remember” through their rules. Risk models, for instance, may tighten after a shock, reducing credit precisely when businesses need it most. Thus, market recovery can depend on ( {24} ) as much as it does on earnings or interest rates.`,
+      `None of this implies that individuals are helpless. A disciplined approach can reduce the sway of herd behavior: diversify, define time horizons, and separate news from noise. Still, discipline is easiest to preach when fortunes rise. The true test arrives when headlines scream urgency and friends boast of quick gains. At that moment, the greatest advantage may be the ability to ( {25} )—to pause long enough to ask what evidence would actually change one’s mind.`
+    ],
+    passage_jp: [
+      `投資家は市場を、情報を吸収して正しい価格を出力する合理的な機械のように語りがちだ。しかし実際の市場は、物語が競い合う社会的な場でもある。革新技術や崩壊の予兆といった魅力的なナラティブが広がると、人々はその物語を増幅するように行動してしまう。これはファンダメンタルズが無関係だという意味ではない。むしろ認知が一時的に現実を追い越すことがある、ということだ。そうした局面では、過去のリターンが未来の成功の証拠として扱われるため、分析者は（23）ことに気づく。`,
+      `厄介なのは、物語がきれいに消えないことだ。価格が調整された後でも感情の痕跡は残る。損失が個人的な痛みとして記憶され、データのせいではなく心理的理由で長年特定セクターを避ける人もいる。さらに銀行やファンド、規制当局など制度側もルールを通じて“記憶”する。たとえばリスクモデルはショック後に引き締まり、企業が最も信用を必要とするタイミングで融資が縮む。よって回復は、利益や金利と同じくらい（24）にも依存する。`,
+      `これは個人が無力だという意味ではない。分散、時間軸の設定、ノイズとニュースの分離といった規律は群集心理の影響を減らす。それでも規律は相場が上がっているときほど言いやすい。本当の試練は、見出しが緊急性を煽り、周囲が短期利益を自慢する瞬間に来る。そのとき最大の強みは（25）—自分の考えを変え得る証拠は何か、と問えるだけの“間”を持つ力—かもしれない。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: [
+          "momentum becomes self-reinforcing",
+          "information stops flowing entirely",
+          "prices reflect only government policy",
+          "people stop caring about risk"
+        ],
+        answer: "momentum becomes self-reinforcing",
+        explanation:
+`【読みの軸】“過去のリターンが未来の証拠扱い”＝勢いを根拠にさらに買いが入る。
+
+【直後のヒント】
+- “past returns are treated as proof of future success”
+  ＝上がったから、また上がる…という循環
+
+【だから】
+モメンタム（勢い）が自己強化する self-reinforcing が自然。`,
+        why_wrong: {
+          "information stops flowing entirely": "情報が止まる話はない（むしろ物語が増幅）。",
+          "prices reflect only government policy": "政府政策だけに還元する根拠がない。",
+          "people stop caring about risk": "リスクが消えるとは言ってない。"
+        }
+      },
+      {
+        id: 24,
+        options: [
+          "psychology and institutional constraints",
+          "a single investor’s intuition",
+          "the abolition of regulation",
+          "perfectly accurate predictions"
+        ],
+        answer: "psychology and institutional constraints",
+        explanation:
+`【読みの軸】回復を遅らせるのは「心の傷」と「制度の引き締め」。
+
+【本文の材料】
+- emotional imprint（心理）
+- risk models tighten（制度）
+
+【だから】
+psychology（心理）＋ institutional constraints（制度的制約）が合体した選択肢がドンピシャ。`,
+        why_wrong: {
+          "a single investor’s intuition": "個人の直感ではなく、市場全体の心理と制度を述べている。",
+          "the abolition of regulation": "規制撤廃の主張はない。",
+          "perfectly accurate predictions": "完璧予測の話ではない。"
+        }
+      },
+      {
+        id: 25,
+        options: [
+          "withhold immediate judgment",
+          "chase the loudest headline",
+          "copy the most popular trade",
+          "ignore contradictory data"
+        ],
+        answer: "withhold immediate judgment",
+        explanation:
+`【読みの軸】“pause long enough” が決定打。
+
+【言い換え】
+- pause = すぐ決めない
+- ask what evidence would change one’s mind = 検証姿勢
+
+【だから】
+即断を保留する withhold immediate judgment が最も合う。`,
+        why_wrong: {
+          "chase the loudest headline": "逆（煽りに乗るな）。",
+          "copy the most popular trade": "群集心理（herd）に流される行為。",
+          "ignore contradictory data": "証拠で考えを変える話と逆。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "compelling narrative", jp: "説得力のある物語", ex: "A compelling narrative can move markets." },
+      { term: "fundamentals", jp: "（経済の）基礎要因", ex: "Fundamentals still matter in the long run." },
+      { term: "outrun reality", jp: "現実を追い越す", ex: "Perception can outrun reality temporarily." },
+      { term: "emotional imprint", jp: "感情の痕跡", ex: "Losses leave an emotional imprint." },
+      { term: "tighten", jp: "引き締める", ex: "Risk models may tighten after a shock." },
+      { term: "credit", jp: "信用／融資", ex: "Credit can shrink in a downturn." },
+      { term: "herd behavior", jp: "群集心理", ex: "Herd behavior drives bubbles." },
+      { term: "time horizon", jp: "時間軸", ex: "Define your time horizon clearly." }
+    ]
+  },
+
+  // --------- (3) ----------
+  {
+    title: "The Ecology of Attention",
+    level: "Eiken Grade 1",
+    topic: "Media / Society",
+    startNo: 23,
+    passage: [
+      `It is tempting to treat attention as a private resource—something an individual either manages well or squanders. But attention is increasingly shaped by environments designed to capture it. Platforms measure engagement with exquisite precision and optimize content accordingly. This creates a feedback loop: posts that provoke strong reactions are promoted, and promoted posts provoke more reactions. In such systems, it is common that ( {23} ), even when the underlying facts are unchanged.`,
+      `The consequences extend beyond mere distraction. When collective attention clusters around a narrow set of topics, other issues struggle to gain traction, including slow-moving crises that lack dramatic visuals. Moreover, constant exposure to outrage can distort perceptions of risk, making rare events feel imminent. Some researchers argue that healthier information ecosystems require ( {24} ): transparency about recommendation systems, meaningful friction for sharing, and incentives for accuracy over virality.`,
+      `Skeptics counter that regulation can be blunt and that people still have agency. Both points are fair. Yet agency is easier to exercise when choices are visible and costs are clear. If a feed is engineered to feel seamless, opting out becomes psychologically expensive. Ultimately, the question is not whether technology “causes” polarization, but whether societies can build norms that ( {25} ) without suppressing legitimate dissent.`
+    ],
+    passage_jp: [
+      `注意力は個人の資源であり、うまく管理できる人と浪費する人がいる、と考えたくなる。しかし注意は、ますます「注意を奪うために設計された環境」によって形作られている。プラットフォームは関与を精密に測定し、それに合わせてコンテンツを最適化する。その結果、強い反応を引き起こす投稿が拡散され、拡散された投稿がさらに反応を呼ぶフィードバックループが生まれる。こうしたシステムでは、根底の事実が変わっていなくても（23）ことがよく起こる。`,
+      `影響は単なる注意散漫にとどまらない。集団の注意が狭い話題に集中すると、目立たない問題—劇的な映像がない“ゆっくり進む危機”—は注目を得にくい。さらに怒りへの継続的曝露はリスク感覚を歪め、稀な出来事を差し迫った脅威のように感じさせる。より健全な情報環境には（24）が必要だ、と研究者は言う。推薦システムの透明性、拡散に適度な摩擦、バズより正確性を優遇するインセンティブなどである。`,
+      `懐疑派は規制が粗雑になり得ること、そして人々には主体性があることを指摘する。どちらも正しい。ただし主体性は、選択肢が見え、コストが明確なときほど発揮しやすい。フィードが“シームレス”に設計されていると、離脱する心理的コストが上がる。結局の問いは、技術が分断を“生む”かではなく、正当な異議を抑えずに（25）規範を作れるか、である。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: [
+          "emotions dominate the conversation",
+          "long articles always go viral",
+          "people stop sharing entirely",
+          "algorithms become random"
+        ],
+        answer: "emotions dominate the conversation",
+        explanation:
+`【読みの軸】“強い反応”が推される → 推されたものがさらに反応を呼ぶ。
+
+【本文の材料】
+- provoke strong reactions
+- feedback loop
+
+【だから】
+事実は同じでも、感情（特に怒り）が会話を支配しやすい＝emotions dominate。`,
+        why_wrong: {
+          "long articles always go viral": "長文が必ずバズる根拠なし。むしろ反応の強さが鍵。",
+          "people stop sharing entirely": "逆。拡散が促進される話。",
+          "algorithms become random": "最適化される（optimize）のでランダムではない。"
+        }
+      },
+      {
+        id: 24,
+        options: [
+          "structural guardrails",
+          "no moderation whatsoever",
+          "instant sharing by default",
+          "complete anonymity for all accounts"
+        ],
+        answer: "structural guardrails",
+        explanation:
+`【読みの軸】コロン後は具体例の列挙。
+
+【列挙内容】
+- transparency（透明性）
+- friction（摩擦）
+- incentives（正確性優遇）
+
+【だから】
+仕組み側の安全柵＝structural guardrails が正解。`,
+        why_wrong: {
+          "no moderation whatsoever": "安全柵の話と逆方向。",
+          "instant sharing by default": "摩擦（friction）を入れろと言っているので逆。",
+          "complete anonymity for all accounts": "匿名化が解決策とは書いていない。"
+        }
+      },
+      {
+        id: 25,
+        options: [
+          "reduce needless escalation",
+          "maximize engagement at any cost",
+          "remove all disagreement",
+          "prevent people from forming opinions"
+        ],
+        answer: "reduce needless escalation",
+        explanation:
+`【読みの軸】“legitimate dissent（正当な異議）”は守る。
+
+【だから】
+対立そのものを消すのではなく、
+無駄なエスカレーションだけ抑える＝reduce needless escalation が自然。`,
+        why_wrong: {
+          "maximize engagement at any cost": "問題の原因に近い（反応最適化）。",
+          "remove all disagreement": "正当な異議まで消してしまう。",
+          "prevent people from forming opinions": "意見形成を妨げるのは民主的でない。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "feedback loop", jp: "フィードバックループ", ex: "A feedback loop amplifies strong reactions." },
+      { term: "engagement", jp: "関与（反応・滞在・クリック）", ex: "Platforms optimize engagement metrics." },
+      { term: "gain traction", jp: "勢いを得る／注目を集める", ex: "Some issues struggle to gain traction." },
+      { term: "distort", jp: "歪める", ex: "Outrage can distort risk perception." },
+      { term: "imminent", jp: "差し迫った", ex: "Rare events can feel imminent." },
+      { term: "friction", jp: "摩擦（手間）", ex: "Friction can slow careless sharing." },
+      { term: "virality", jp: "拡散力", ex: "Accuracy should beat virality." },
+      { term: "dissent", jp: "異議", ex: "Protect legitimate dissent." }
+    ]
+  },
+
+  // --------- (4) to (10) : 先ほどの7セット（同レベル） ----------
+  {
+    title: "The Hidden Cost of Convenience",
+    level: "Eiken Grade 1",
+    topic: "Consumer culture / Environment",
+    startNo: 23,
+    passage: [
+      `Modern consumers celebrate convenience: next-day delivery, single-use packaging, and on-demand services that collapse waiting time to nearly zero. Yet convenience is not free; it simply shifts costs to places most shoppers do not see. Warehouses expand at the edge of cities, delivery fleets multiply, and “last-mile” logistics generate emissions that rarely appear on a receipt. The paradox is that even well-intentioned buyers may ( {23} ), because the system rewards speed over efficiency.`,
+      `Companies, for their part, face a dilemma. If they slow deliveries or charge the true environmental cost, customers may defect to rivals. But if they keep promising ever-faster shipping, they lock themselves into a race that burns fuel and labor. Some analysts argue that the most realistic way out is ( {24} ): industry-wide standards or policies that prevent a few firms from free-riding while others pay to clean up.`,
+      `None of this suggests consumers are powerless. Small changes—bundling orders, choosing slower shipping, refusing unnecessary packaging—can reduce demand for wasteful logistics. Still, meaningful progress may require cultural change as well as regulation. Unless convenience is reframed as a choice with consequences, society will ( {25} )—treating speed as a virtue even when it undermines long-term sustainability.`
+    ],
+    passage_jp: [
+      `現代の消費者は利便性を称賛する。翌日配送、使い捨て包装、オンデマンドサービスは「待ち時間」をほぼゼロにする。しかし利便性は無料ではなく、単にコストを消費者の見えない場所へ移している。都市の外縁で倉庫が拡大し、配送車両が増え、ラストワンマイル物流が排出する温室効果ガスはレシートには現れにくい。逆説的に、善意の購入者でさえ（23）ことがある。なぜなら仕組みが「効率」より「速さ」を報いるからだ。`,
+      `企業側にもジレンマがある。配送を遅くしたり環境コストを正確に価格へ反映させたりすれば、顧客が競合へ流れる可能性がある。だが、さらに速い配送を約束し続ければ、燃料と労働を消耗する競争に自らを固定してしまう。現実的な出口は（24）だと主張する分析者もいる。つまり、業界全体の基準や政策によって、一部の企業だけが“ただ乗り”し、他社だけが改善コストを負担する状況を防ぐことだ。`,
+      `とはいえ消費者が無力というわけではない。注文のまとめ買い、遅い配送の選択、不要な包装の拒否など小さな行動は、無駄な物流需要を減らせる。ただし本質的な前進には規制だけでなく文化的変化も必要かもしれない。利便性が「結果を伴う選択」だと捉え直されない限り、社会は（25）—長期的持続可能性を損ねても速さを美徳として扱い続ける—だろう。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: [
+          "overconsume without noticing the footprint",
+          "eliminate emissions through personal virtue",
+          "accurately measure supply-chain waste",
+          "avoid all trade-offs by definition"
+        ],
+        answer: "overconsume without noticing the footprint",
+        explanation:
+`【結論】正解は “overconsume without noticing the footprint”。
+
+【根拠】
+- “shifts costs to places most shoppers do not see”＝見えない
+- “rewards speed over efficiency”＝速さが勝つ仕組み
+→ 善意でも気づかず消費が増えやすい。`,
+        why_wrong: {
+          "eliminate emissions through personal virtue": "個人の善意だけで解決する話ではない。",
+          "accurately measure supply-chain waste": "むしろ“見えない”のが問題。",
+          "avoid all trade-offs by definition": "trade-off がある前提と矛盾。"
+        }
+      },
+      {
+        id: 24,
+        options: [
+          "collective constraints that level the playing field",
+          "a complete ban on delivery services",
+          "secret agreements among competitors",
+          "customers abandoning online shopping forever"
+        ],
+        answer: "collective constraints that level the playing field",
+        explanation:
+`【結論】正解は “collective constraints that level the playing field”。
+
+【根拠】
+- 一社だけ改善→顧客が競合へ（defect）
+- “prevent free-riding” が決定打
+→ 業界横断で条件を揃える仕組みが必要。`,
+        why_wrong: {
+          "a complete ban on delivery services": "極端で現実的でない。",
+          "secret agreements among competitors": "政策/標準の話とズレる。",
+          "customers abandoning online shopping forever": "前提が飛びすぎ。"
+        }
+      },
+      {
+        id: 25,
+        options: [
+          "keep fetishizing speed",
+          "solve the problem by technology alone",
+          "eliminate the need for regulation",
+          "price every service perfectly overnight"
+        ],
+        answer: "keep fetishizing speed",
+        explanation:
+`【結論】正解は “keep fetishizing speed”。
+
+【根拠】
+- “treating speed as a virtue” がそのまま言い換え。`,
+        why_wrong: {
+          "solve the problem by technology alone": "文化＋規制も必要と言っている。",
+          "eliminate the need for regulation": "逆。",
+          "price every service perfectly overnight": "非現実。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "last-mile logistics", jp: "ラストワンマイル物流", ex: "Last-mile logistics often generate significant emissions." },
+      { term: "shift costs", jp: "コストを転嫁する", ex: "Convenience shifts costs to unseen places." },
+      { term: "defect to rivals", jp: "競合に乗り換える", ex: "Customers may defect to rivals if prices rise." },
+      { term: "free-riding", jp: "ただ乗り", ex: "Policies can prevent free-riding." },
+      { term: "level the playing field", jp: "条件を公平にそろえる", ex: "Standards can level the playing field." },
+      { term: "reframe", jp: "捉え直す", ex: "We need to reframe convenience as a choice." },
+      { term: "undermine", jp: "損なう", ex: "Speed can undermine sustainability." },
+      { term: "sustainability", jp: "持続可能性", ex: "Long-term sustainability requires trade-offs." }
+    ]
+  },
+
+  {
+    title: "The Politics of Scarcity",
+    level: "Eiken Grade 1",
+    topic: "Geopolitics / Supply chains",
+    startNo: 23,
+    passage: [
+      `In an era of geopolitical tension, governments have rediscovered a harsh truth: scarcity can be weaponized. When a few countries control key minerals, shipping routes, or advanced manufacturing capacity, they gain leverage far beyond their borders. This is why “resilience” has become a buzzword. Still, resilience is often misunderstood. Stockpiles and subsidies may help in the short run, but they cannot substitute for ( {23} ), which is the ability to adapt when assumptions fail.`,
+      `Businesses face similar pressures. They want stable inputs and predictable costs, yet they also want the lowest price. The result is a contradictory strategy: firms diversify suppliers on paper but continue to rely on a single cheap source in practice. Policymakers respond with industrial policy, but such interventions can backfire if they create complacency. A truly resilient system requires ( {24} ), including transparent risk audits and contingency plans that are tested before a crisis.`,
+      `The temptation, of course, is to treat every dependency as a threat. That mindset can spiral into protectionism, raising prices and provoking retaliation. The more sustainable approach is to distinguish between fragile choke points and ordinary trade. Unless leaders can make that distinction, they may ( {25} )—turning the language of resilience into an excuse for permanent economic conflict.`
+    ],
+    passage_jp: [
+      `地政学的緊張の時代、政府は厳しい真実を再発見した。希少性は武器化され得る。少数の国が重要鉱物や海上輸送路、高度製造能力を握れば、国境を超えた大きな影響力を得る。だから「レジリエンス」が流行語になった。ただし誤解も多い。備蓄や補助金は短期的には助けになるが、前提が崩れたときに適応する能力、つまり（23）の代わりにはならない。`,
+      `企業も同様の圧力に直面する。安定供給と予測可能なコストを望む一方、最安値も追う。その結果、書類上の分散と実務上の依存という矛盾が生まれる。政策は産業政策で応じるが、介入が安堵を生んで逆効果になることもある。真のレジリエンスには（24）が必要で、透明なリスク監査や危機前にテストされた代替計画が含まれる。`,
+      `もちろん、あらゆる依存を脅威とみなす誘惑がある。しかしそれは保護主義へと雪だるま式に進み、価格を押し上げ報復を招く。より持続的なのは、脆弱なチョークポイントと普通の貿易依存を区別することだ。その区別ができなければ、指導者は（25）—レジリエンスを恒久的対立の口実にしてしまう—かもしれない。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: ["organizational agility","perfect self-sufficiency","political neutrality of markets","a world without shocks"],
+        answer: "organizational agility",
+        explanation:
+`【結論】“ability to adapt when assumptions fail”＝適応力＝agility。
+
+【ポイント】
+- 備蓄は“短期”の処方
+- 本質は崩れた前提に合わせて動ける組織能力`,
+        why_wrong: {
+          "perfect self-sufficiency": "完全自給は非現実、適応力の話とズレる。",
+          "political neutrality of markets": "武器化の話なので中立性は逆方向。",
+          "a world without shocks": "ショック前提で議論している。"
+        }
+      },
+      {
+        id: 24,
+        options: ["disciplined preparedness","blanket protectionism","keeping suppliers secret","optimism that crises are rare"],
+        answer: "disciplined preparedness",
+        explanation:
+`【結論】コロン後の列挙（risk audits / tested contingency plans）が“備え”そのもの。
+
+→ disciplined preparedness（訓練された準備）`,
+        why_wrong: {
+          "blanket protectionism": "最後で保護主義の危険を警告。",
+          "keeping suppliers secret": "透明な監査と真逆。",
+          "optimism that crises are rare": "楽観より備え、という文脈。"
+        }
+      },
+      {
+        id: 25,
+        options: ["overcorrect into protectionism","eliminate interdependence entirely","stabilize prices instantly","make retaliation impossible"],
+        answer: "overcorrect into protectionism",
+        explanation:
+`【結論】依存を全部脅威扱い→保護主義へ“スパイラル”という流れ。
+
+→ overcorrect（過剰反応）して protectionism へ`,
+        why_wrong: {
+          "eliminate interdependence entirely": "区別するのが大事と言っている。",
+          "stabilize prices instantly": "価格即時安定の話ではない。",
+          "make retaliation impossible": "報復が起きる、と述べている。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "weaponize", jp: "武器化する", ex: "Scarcity can be weaponized." },
+      { term: "leverage", jp: "影響力／てこ", ex: "Control gives leverage." },
+      { term: "resilience", jp: "強靭性", ex: "Resilience is often misunderstood." },
+      { term: "stockpile", jp: "備蓄する", ex: "Stockpiles help in the short run." },
+      { term: "contingency plan", jp: "緊急対応計画", ex: "Test contingency plans early." },
+      { term: "choke point", jp: "要所／ボトルネック", ex: "Fragile choke points create risk." },
+      { term: "retaliation", jp: "報復", ex: "Protectionism can provoke retaliation." },
+      { term: "overcorrect", jp: "過剰修正する", ex: "Leaders may overcorrect into protectionism." }
+    ]
+  },
+
+  {
+    title: "The Ethics of Prediction",
+    level: "Eiken Grade 1",
+    topic: "AI / Public policy",
+    startNo: 23,
+    passage: [
+      `Predictive systems promise to make institutions fairer by replacing human judgment with data. Schools forecast dropout risk, hospitals flag patients for extra monitoring, and courts estimate recidivism. The appeal is obvious: numbers look impartial. But the danger is also obvious. If historical data reflect unequal treatment, then prediction can ( {23} )—not by malice, but by quietly reproducing patterns at scale.`,
+      `Defenders respond that abandoning prediction would be worse, because intuition is even more biased. That may be true. The real question is what governance surrounds the model. Are decision-makers trained to interpret probabilities? Can individuals contest errors? Are outcomes audited over time? Without such safeguards, “automation” becomes a shield against accountability. Responsible use therefore requires ( {24} ): transparency about inputs, clear appeal processes, and periodic evaluation of real-world impacts.`,
+      `Even with safeguards, there remains a philosophical tension. A society that sorts people by predicted risk may discourage second chances, treating the future as fixed. Yet a society that ignores risk entirely may fail to protect the vulnerable. The goal is not to abolish prediction, but to ensure it ( {25} )—helping allocate support without hardening inequality into destiny.`
+    ],
+    passage_jp: [
+      `予測システムは、人間の判断をデータに置き換えることで制度をより公平にすると約束する。学校は中退リスクを予測し、病院は追加監視が必要な患者を抽出し、裁判所は再犯確率を推定する。数字は中立に見える。しかし歴史データが不平等を反映していれば、予測は（23）—悪意ではなく、パターンを静かに大規模再生産する形で—不平等を強化し得る。`,
+      `擁護者は、予測を捨てれば直感の方が偏るので、やめる方が悪いと反論するかもしれない。本当の問題はモデルを取り巻くガバナンスだ。確率解釈の訓練はあるか。誤りを争えるか。結果を監査できるか。安全策なしの自動化は説明責任から逃げる盾になる。だから責任ある利用には（24）が必要だ。入力の透明性、異議申立て、現実の影響の定期評価などである。`,
+      `安全策があっても哲学的緊張は残る。予測リスクで人を仕分けする社会は再挑戦を阻み、未来を固定されたものとして扱いかねない。一方でリスクを完全無視する社会は弱者を守れないかもしれない。目的は予測を廃止することではなく、（25）—支援配分に役立てつつ不平等を運命へ固めない—ようにすることだ。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: ["entrench existing inequities","remove bias by definition","guarantee equal outcomes","erase history from institutions"],
+        answer: "entrench existing inequities",
+        explanation:
+`【結論】“historical data reflect unequal treatment” が核心。
+
+【論理】
+過去の不平等 → データに埋め込まれる → モデルが規模拡大で再生産
+→ inequities（不平等）を entrench（固定化）する。`,
+        why_wrong: {
+          "remove bias by definition": "数字＝中立“に見える”が危険、と言っている。",
+          "guarantee equal outcomes": "結果保証の話ではない。",
+          "erase history from institutions": "歴史データが影響する、という論旨。"
+        }
+      },
+      {
+        id: 24,
+        options: ["procedural guardrails","total secrecy about model inputs","blind trust in automation","punishment for questioning decisions"],
+        answer: "procedural guardrails",
+        explanation:
+`【結論】コロン後の列挙（transparency / appeal / evaluation）＝手続きの安全柵。
+
+→ procedural guardrails がベスト。`,
+        why_wrong: {
+          "total secrecy about model inputs": "透明性が必要なので逆。",
+          "blind trust in automation": "盾になると警告している。",
+          "punishment for questioning decisions": "contest errors を可能にするべき、と述べる。"
+        }
+      },
+      {
+        id: 25,
+        options: ["serves as a tool rather than a verdict","treats probabilities as certainties","rewards institutions for ignoring errors","eliminates the need for human judgment"],
+        answer: "serves as a tool rather than a verdict",
+        explanation:
+`【結論】予測は“支援の配分”に使うが、“運命”を決める判決にしてはいけない。
+
+→ tool（道具） vs verdict（断定）`,
+        why_wrong: {
+          "treats probabilities as certainties": "確率の誤用が問題だと前段で述べる。",
+          "rewards institutions for ignoring errors": "監査が必要と言っている。",
+          "eliminates the need for human judgment": "人の解釈とガバナンスが必要。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "recidivism", jp: "再犯", ex: "Courts estimate recidivism risk." },
+      { term: "impartial", jp: "公平な", ex: "Numbers look impartial." },
+      { term: "reproduce patterns", jp: "パターンを再生産する", ex: "Models can reproduce patterns at scale." },
+      { term: "accountability", jp: "説明責任", ex: "Automation can shield accountability." },
+      { term: "appeal process", jp: "異議申立て手続き", ex: "People need a clear appeal process." },
+      { term: "audit outcomes", jp: "結果を監査する", ex: "Outcomes should be audited over time." },
+      { term: "second chances", jp: "再挑戦の機会", ex: "Societies should allow second chances." },
+      { term: "destiny", jp: "運命", ex: "Avoid hardening inequality into destiny." }
+    ]
+  },
+
+  {
+    title: "The Illusion of Participation",
+    level: "Eiken Grade 1",
+    topic: "Democracy / Media",
+    startNo: 23,
+    passage: [
+      `Digital platforms give citizens the feeling that they are constantly participating in public life. A post, a poll, or a viral clip can seem like a political act. Yet much of this activity is frictionless: it costs little and changes little. The risk is that people confuse expression with influence, and therefore ( {23} )—believing they have “done something” when they have merely reacted.`,
+      `This is not to dismiss online engagement entirely. It can expose wrongdoing, amplify marginalized voices, and coordinate rapid aid. The difference lies in whether participation is connected to institutions that can act. When outrage has no channel, it dissipates into cynicism. For that reason, some reformers argue for ( {24} ): mechanisms that translate attention into concrete decisions, such as deliberative forums, transparent budgeting, or accountable representation.`,
+      `Skeptics worry that such mechanisms could be captured by elites or overwhelmed by noise. Those are real concerns. Still, a democracy that offers only symbolic participation may breed resentment. Unless citizens can see how their input matters, they may ( {25} )—either retreating from politics altogether or embracing demagogues who promise simple answers.`
+    ],
+    passage_jp: [
+      `デジタルプラットフォームは、市民が常に公共生活に参加しているような感覚を与える。投稿、投票、拡散動画は政治行為のように見える。しかし多くは摩擦がほぼなく、コストも小さく、変化も小さい。危険なのは、表現を影響力と取り違え、その結果（23）—反応しただけなのに「何かやった」と思い込む—ことだ。`,
+      `これはオンライン参加を全否定するものではない。不正を暴き、周縁化された声を増幅し、迅速な支援を調整することもある。違いは、参加が実際に動ける制度につながっているかどうかだ。怒りに出口がなければ、やがて冷笑へと消散する。だから改革派の一部は（24）を提案する。注意（注目）を具体的決定へ変換する仕組み、例えば熟議フォーラム、透明な予算編成、説明責任ある代表制などだ。`,
+      `懐疑派は、そうした仕組みがエリートに乗っ取られたりノイズに飲み込まれたりする危険を指摘する。それは現実の懸念だ。それでも象徴的参加しか提供しない民主主義は不満を育てかねない。自分の入力がどう効いたのか見えない限り、市民は（25）—政治から完全に引くか、単純な答えを約束する扇動家に傾く—かもしれない。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: ["mistake performative action for real change","gain legislative power instantly","replace elections with hashtags","eliminate political polarization"],
+        answer: "mistake performative action for real change",
+        explanation:
+`【結論】摩擦ゼロの行為は“気持ち”は満たすが変化は小さい。
+
+→ performative（見せかけ）を real change と誤認する。`,
+        why_wrong: {
+          "gain legislative power instantly": "立法権を得る話ではない。",
+          "replace elections with hashtags": "誇張で論点外。",
+          "eliminate political polarization": "分断解消の主張はしていない。"
+        }
+      },
+      {
+        id: 24,
+        options: ["institutional bridges","banning online discussion","anonymous outrage without accountability","more frictionless reactions"],
+        answer: "institutional bridges",
+        explanation:
+`【結論】attention（注目）を decision（決定）へ“変換”する仕組み＝橋渡し。
+
+→ institutional bridges`,
+        why_wrong: {
+          "banning online discussion": "オンライン参加を全否定していない。",
+          "anonymous outrage without accountability": "accountable を求めているので逆。",
+          "more frictionless reactions": "摩擦ゼロが問題と言っている。"
+        }
+      },
+      {
+        id: 25,
+        options: ["swing between apathy and extremism","become perfectly informed citizens","stop feeling resentment","solve representation automatically"],
+        answer: "swing between apathy and extremism",
+        explanation:
+`【結論】ダッシュ後の言い換えがそのまま：
+- retreating = 無関心
+- embracing demagogues = 極端化
+→ その両極に揺れる。`,
+        why_wrong: {
+          "become perfectly informed citizens": "理想論で本文の警告と逆。",
+          "stop feeling resentment": "resentment が“生まれる”と警告している。",
+          "solve representation automatically": "自動解決の話ではない。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "frictionless", jp: "摩擦がない／手間がない", ex: "Frictionless participation can feel satisfying." },
+      { term: "performative", jp: "見せかけの", ex: "Performative action is not real change." },
+      { term: "dissipate", jp: "消散する", ex: "Outrage can dissipate into cynicism." },
+      { term: "deliberative forum", jp: "熟議フォーラム", ex: "Deliberative forums can guide decisions." },
+      { term: "accountable", jp: "説明責任のある", ex: "Accountable representation matters." },
+      { term: "captured by elites", jp: "エリートに乗っ取られる", ex: "Mechanisms may be captured by elites." },
+      { term: "demagogue", jp: "扇動家", ex: "Demagogues promise simple answers." },
+      { term: "resentment", jp: "不満／憤り", ex: "Symbolic participation may breed resentment." }
+    ]
+  },
+
+  {
+    title: "The Science of Forgetting",
+    level: "Eiken Grade 1",
+    topic: "Neuroscience / Learning",
+    startNo: 23,
+    passage: [
+      `Students often treat forgetting as failure, but biology tells a different story. Memory is not a warehouse; it is a living system that constantly edits itself. Some forgetting is protective, clearing out irrelevant details so the mind is not overwhelmed. The mistake is to assume that whatever disappears was never learned. In reality, many traces remain, and the right cue can ( {23} )—bringing back knowledge that seemed lost.`,
+      `This is why effective study methods rely on retrieval rather than repetition. Reading notes feels fluent, but it can create an illusion of mastery. Testing yourself feels harder, yet it forces the brain to rebuild the pathway. Over time, spaced retrieval can make recall durable. The key is that difficulty is not a sign to quit; it is often ( {24} ), indicating that learning is taking place.`,
+      `Of course, there are limits. Stress, sleep deprivation, and multitasking can impair consolidation. But the broader lesson remains hopeful: forgetting is not a verdict. If learners adopt strategies that work with the brain instead of against it, they can ( {25} )—not by cramming more hours, but by studying more intelligently.`
+    ],
+    passage_jp: [
+      `学習者は忘却を失敗だと捉えがちだが、生物学は別の物語を示す。記憶は倉庫ではなく、常に自分を編集する生きたシステムだ。忘れることの一部は保護的で、無関係な細部を掃除し、心が情報過多で潰れないようにする。誤りは、消えたものは学習されていなかったと決めつけることだ。実際には痕跡が残っていることも多く、適切な手がかりがあれば（23）—失われたと思った知識が戻る—ことがある。`,
+      `だから有効な勉強法は反復ではなく想起（取り出し）に依存する。ノートを読むだけだとスラスラ進み、習得した錯覚が生まれやすい。自分をテストするのは難しく感じるが、脳に回路を作り直させる。間隔を空けた想起は、時間をかけて想起を強固にする。重要なのは、難しさを「やめるサイン」と捉えないことだ。難しさはしばしば（24）であり、学習が起きている合図でもある。`,
+      `もちろん限界はある。ストレス、睡眠不足、マルチタスクは定着を妨げる。しかし大きな教訓は希望に満ちている。忘却は判決ではない。脳に逆らうのではなく、脳と協調する戦略を採れば、学習者は（25）—時間を増やすのではなく賢く学ぶことで—成果を上げられる。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: ["reactivate them","erase them permanently","prove they were never encoded","prevent learning altogether"],
+        answer: "reactivate them",
+        explanation:
+`【結論】痕跡（traces）が残る→cue（手がかり）で戻る＝再活性化。
+
+→ reactivate`,
+        why_wrong: {
+          "erase them permanently": "bringing back と矛盾。",
+          "prove they were never encoded": "traces remain と矛盾。",
+          "prevent learning altogether": "学習阻害の話ではない。"
+        }
+      },
+      {
+        id: 24,
+        options: ["a desirable difficulty","a warning of brain damage","evidence that repetition is enough","proof that testing is useless"],
+        answer: "a desirable difficulty",
+        explanation:
+`【結論】“learning is taking place” の合図としての難しさ。
+
+→ desirable difficulty（望ましい困難）`,
+        why_wrong: {
+          "a warning of brain damage": "極端で根拠なし。",
+          "evidence that repetition is enough": "retrieval を推している。",
+          "proof that testing is useless": "testing が重要と述べている。"
+        }
+      },
+      {
+        id: 25,
+        options: ["improve outcomes","memorize everything forever","avoid sleep entirely","eliminate all stress"],
+        answer: "improve outcomes",
+        explanation:
+`【結論】“study more intelligently” の結果＝成果改善。
+
+→ improve outcomes`,
+        why_wrong: {
+          "memorize everything forever": "現実的でなく本文の趣旨とも違う。",
+          "avoid sleep entirely": "sleep deprivation は悪影響と言っている。",
+          "eliminate all stress": "ストレスゼロの話ではない。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "consolidation", jp: "（記憶の）定着", ex: "Sleep supports memory consolidation." },
+      { term: "retrieval", jp: "想起／取り出し", ex: "Retrieval practice strengthens recall." },
+      { term: "illusion of mastery", jp: "習得の錯覚", ex: "Rereading can create an illusion of mastery." },
+      { term: "spaced retrieval", jp: "間隔を空けた想起", ex: "Spaced retrieval makes memory durable." },
+      { term: "durable", jp: "長持ちする", ex: "Durable recall takes time." },
+      { term: "cue", jp: "手がかり", ex: "A cue can reactivate memory traces." },
+      { term: "overwhelmed", jp: "圧倒される", ex: "Too much detail can overwhelm the mind." },
+      { term: "cramming", jp: "詰め込み", ex: "Cramming is less effective than spacing." }
+    ]
+  },
+
+  {
+    title: "The Rent Spiral",
+    level: "Eiken Grade 1",
+    topic: "Housing / Urban economics",
+    startNo: 23,
+    passage: [
+      `In many cities, rent increases are described as a natural law, as if housing were immune to policy. But rents are not weather; they are the result of rules about land, finance, and construction. When demand rises faster than supply, prices climb. Yet the reasons supply lags are often political: zoning restrictions, neighborhood vetoes, and long approval processes. In effect, a city can ( {23} )—protecting the character of a district while pricing out the people who give it life.`,
+      `The debate is frequently framed as a battle between developers and residents. That frame is incomplete. Housing markets also reflect tax incentives, transit investments, and the concentration of jobs. Building more units helps, but location matters: if new housing is isolated from employment and services, it does little to reduce pressure where people actually want to live. A comprehensive response therefore requires ( {24} ), aligning housing with transportation and job growth.`,
+      `Critics fear that “upzoning” will accelerate gentrification. That concern is not trivial. However, refusing to build can also intensify displacement, because scarcity favors those with wealth. The hard truth is that there is no painless option. Unless cities accept trade-offs and build at scale, they may ( {25} )—presiding over vibrant cultural scenes that only the affluent can afford to enjoy.`
+    ],
+    passage_jp: [
+      `多くの都市では家賃上昇が自然法則のように語られる。しかし家賃は天気ではなく、土地・金融・建設のルールの結果だ。需要が供給より速く増えれば価格は上がる。供給が遅れる理由は用途地域制限、近隣の拒否権、長い承認プロセスなど政治的なものが多い。結果として都市は（23）—地区の雰囲気を守る一方で、人々を価格で締め出す—ことになり得る。`,
+      `議論は開発業者vs住民と描かれがちだが、それだけではない。税制、交通投資、雇用集中も影響する。供給増は重要だが立地も重要。仕事やサービスから隔離された住宅は、住みたい場所の圧力を下げにくい。包括的対応には（24）が必要で、住宅・交通・雇用増を整合させる必要がある。`,
+      `用途規制緩和がジェントリフィケーションを加速する懸念は無視できない。しかし建てないことも立ち退きを強め得る。希少性は富裕層を利するからだ。痛みのない選択肢はない。都市がトレードオフを受け入れ大規模に建てない限り、（25）—裕福な人だけが文化的魅力を享受できる街—になりかねない。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: ["freeze a neighborhood in place","solve affordability by restricting supply","avoid all political conflict","make demand irrelevant"],
+        answer: "freeze a neighborhood in place",
+        explanation:
+`【結論】供給が動かない＝街が“凍る”。
+
+【材料】
+- zoning / vetoes / approvals → supply lags
+- “protecting character” と “pricing out” の対比
+→ 変化を止めるほど、住める人が減る。`,
+        why_wrong: {
+          "solve affordability by restricting supply": "供給制限は価格上昇に繋がる文脈。",
+          "avoid all political conflict": "政治要因が原因と言っている。",
+          "make demand irrelevant": "需要が価格を動かす前提。"
+        }
+      },
+      {
+        id: 24,
+        options: ["integrated planning","a ban on transit investment","isolating new housing from jobs","doing nothing until prices fall"],
+        answer: "integrated planning",
+        explanation:
+`【結論】“aligning housing with transportation and job growth”＝統合的設計。
+
+→ integrated planning`,
+        why_wrong: {
+          "a ban on transit investment": "交通投資も要素と言っている。",
+          "isolating new housing from jobs": "それがダメと本文で言っている。",
+          "doing nothing until prices fall": "自然に下がる保証なし。"
+        }
+      },
+      {
+        id: 25,
+        options: ["create cities for the affluent","eliminate scarcity without building","stop displacement automatically","avoid all gentrification"],
+        answer: "create cities for the affluent",
+        explanation:
+`【結論】“only the affluent can afford” がそのまま言い換え。
+
+→ create cities for the affluent`,
+        why_wrong: {
+          "eliminate scarcity without building": "建てないと希少性は解消しない。",
+          "stop displacement automatically": "自動では止まらない。",
+          "avoid all gentrification": "痛みゼロは無理、と述べる。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "zoning restrictions", jp: "用途地域制限", ex: "Zoning restrictions can limit supply." },
+      { term: "veto", jp: "拒否権", ex: "Neighborhood vetoes slow construction." },
+      { term: "approval process", jp: "承認プロセス", ex: "Long approval processes delay housing." },
+      { term: "price out", jp: "価格で締め出す", ex: "Rising rents price out residents." },
+      { term: "comprehensive response", jp: "包括的対応", ex: "A comprehensive response aligns housing and transit." },
+      { term: "upzoning", jp: "用途規制緩和", ex: "Upzoning can increase housing capacity." },
+      { term: "displacement", jp: "立ち退き", ex: "Scarcity can intensify displacement." },
+      { term: "affluent", jp: "裕福な", ex: "Only the affluent can afford the area." }
+    ]
+  },
+
+  {
+    title: "The Price of Perfect Security",
+    level: "Eiken Grade 1",
+    topic: "Privacy / Security",
+    startNo: 23,
+    passage: [
+      `After a major incident, calls for stronger surveillance often sound irresistible. If cameras and data can prevent harm, why hesitate? Yet the promise of perfect security is a mirage. Expanding monitoring may catch some threats, but it also creates new vulnerabilities: databases can be hacked, systems can be abused, and oversight can erode. The deeper issue is that security tools tend to ( {23} ), especially once institutions build routines around them.`,
+      `Supporters argue that privacy concerns are exaggerated because “law-abiding people have nothing to hide.” That slogan is comforting but shallow. Rights are not rewards for good behavior; they are protections against arbitrary power. A healthier approach begins with clear limits: define what is collected, how long it is stored, and who can access it. In practice, this means adopting ( {24} ), such as independent audits and strict warrants for sensitive data.`,
+      `Even with safeguards, democracies must confront a trade-off: some risk is unavoidable. The real question is whether societies accept that risk as the cost of freedom, or whether they attempt to eliminate it by expanding control. Unless the public insists on proportionality, governments may ( {25} )—quietly normalizing emergency measures until they become permanent.`
+    ],
+    passage_jp: [
+      `重大事件の後には監視強化の声が魅力的に響く。しかし完全な安全は蜃気楼だ。監視拡大は一部の脅威を捕まえても、新たな脆弱性を生む。データベースはハックされ得るし、制度は悪用され得るし、監督は弱まる。より深い問題は、制度が日常運用に組み込むと監視手段が（23）傾向を持つことだ。`,
+      `「善良な市民なら隠すものはない」というスローガンは心地よいが浅い。権利は善行の報酬ではなく、恣意的権力からの保護である。健全なアプローチは明確な制限から始まる。何を収集し、どれだけ保管し、誰がアクセスできるか。実務では（24）—独立監査や機微データへの厳格な令状要件—が必要になる。`,
+      `安全策があっても民主主義にはトレードオフがある。一定のリスクは避けられない。市民が比例性を求めなければ、政府は（25）—非常時措置を静かに常態化し恒久化する—かもしれない。`
+    ],
+    blanks: [
+      {
+        id: 23,
+        options: ["expand beyond their original purpose","remain perfectly limited forever","reduce the need for oversight","protect databases from hacking"],
+        answer: "expand beyond their original purpose",
+        explanation:
+`【結論】“routines around them”＝運用が固定化→目的が拡大しやすい（mission creep）。
+
+→ expand beyond their original purpose`,
+        why_wrong: {
+          "remain perfectly limited forever": "“tend to” の警告と逆。",
+          "reduce the need for oversight": "監督が弱まる危険は述べるが、不要とは言ってない。",
+          "protect databases from hacking": "むしろ hacked と脆弱性を挙げている。"
+        }
+      },
+      {
+        id: 24,
+        options: ["accountability mechanisms","informal promises by officials","secret data retention","unlimited access for agencies"],
+        answer: "accountability mechanisms",
+        explanation:
+`【結論】独立監査・令状＝説明責任を担保する仕組み。
+
+→ accountability mechanisms`,
+        why_wrong: {
+          "informal promises by officials": "制度としての制限が必要という流れ。",
+          "secret data retention": "透明な制限と逆。",
+          "unlimited access for agencies": "アクセス制限を求めている。"
+        }
+      },
+      {
+        id: 25,
+        options: ["drift into permanent surveillance","eliminate emergencies entirely","maximize freedom without risk","avoid any trade-off"],
+        answer: "drift into permanent surveillance",
+        explanation:
+`【結論】“normalizing emergency measures until they become permanent” の言い換え。
+
+→ drift into permanent surveillance`,
+        why_wrong: {
+          "eliminate emergencies entirely": "リスクは不可避と言っている。",
+          "maximize freedom without risk": "trade-off を認めている。",
+          "avoid any trade-off": "同上。"
+        }
+      }
+    ],
+    vocab: [
+      { term: "mirage", jp: "蜃気楼／幻想", ex: "Perfect security is a mirage." },
+      { term: "oversight", jp: "監督", ex: "Oversight can erode over time." },
+      { term: "arbitrary power", jp: "恣意的権力", ex: "Rights protect against arbitrary power." },
+      { term: "warrant", jp: "令状", ex: "Strict warrants are needed for sensitive data." },
+      { term: "independent audit", jp: "独立監査", ex: "Independent audits improve accountability." },
+      { term: "proportionality", jp: "比例性", ex: "Policies should meet proportionality." },
+      { term: "normalize", jp: "常態化する", ex: "Emergency measures can be normalized." },
+      { term: "mission creep", jp: "目的外拡大", ex: "Surveillance often leads to mission creep." }
+    ]
+  }
+];
+
+// -------------------- State --------------------
+let current = null;
+let userAnswers = {};   // {23: "chosen", ...}
+let graded = false;
+let activeBlankId = null;
+
+// -------------------- UI refs --------------------
+const elPassage = document.getElementById("passage");
+const elOptions = document.getElementById("options");
+const elTitle = document.getElementById("setTitle");
+const elMeta = document.getElementById("setMeta");
+const elOverall = document.getElementById("overallResult");
+
+// buttons
+document.getElementById("btnNew").addEventListener("click", () => loadRandom());
+document.getElementById("btnReset").addEventListener("click", () => resetAnswers());
+document.getElementById("btnCheck").addEventListener("click", () => grade());
+document.getElementById("btnVocab").addEventListener("click", () => openVocab());
+document.getElementById("btnJP").addEventListener("click", () => openJP());
+
+// shortcuts
+window.addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "n") loadRandom();
+  if (k === "r") resetAnswers();
+  if (k === "c") grade();
+  if (k === "v") openVocab();
+  if (k === "j") openJP();
+  if (k === "escape") { closeVocab(); closeJP(); stopSpeech(); }
+});
+
+// -------------------- Render --------------------
+function loadRandom() {
+  const picked = problemBank[Math.floor(Math.random() * problemBank.length)];
+  // shuffle options each time
+  const shuffledBlanks = picked.blanks.map(b => ({ ...b, options: shuffle(b.options) }));
+
+  current = { ...picked, blanks: shuffledBlanks };
+  userAnswers = {};
+  graded = false;
+  activeBlankId = current.startNo;
+
+  render();
+}
+
+function resetAnswers() {
+  if (!current) return;
+  userAnswers = {};
+  graded = false;
+  activeBlankId = current.startNo;
+  render();
+}
+
+function setActiveBlank(id) {
+  activeBlankId = id;
+  const block = document.getElementById(`qblock-${id}`);
+  if (block) block.scrollIntoView({ behavior: "smooth", block: "start" });
+  renderPassageOnly();
+}
+
+function render() {
+  renderHeader();
+  renderPassageOnly();
+  renderOptionsOnly();
+  renderOverall();
+}
+
+function renderHeader() {
+  elTitle.textContent = current ? current.title : "—";
+  if (!current) { elMeta.textContent = "—"; return; }
+
+  const fullText = current.passage.join("\n");
+  const wc = countWords(fullText);
+  elMeta.textContent = `${current.level} / Topic: ${current.topic} / Word count: ~${wc} / Sets: ${problemBank.length}`;
+}
+
+function renderPassageOnly() {
+  if (!current) {
+    elPassage.innerHTML = `<p>右上の「新しい問題（ランダム）」を押してスタート。</p>`;
+    return;
+  }
+
+  const ids = current.blanks.map(b => b.id);
+
+  const paragraphs = current.passage.map((para) => {
+    let html = escapeHTML(para);
+
+    ids.forEach((id) => {
+      const display = `(${id})`;
+      const chosen = userAnswers[id];
+
+      const correct = current.blanks.find(b => b.id === id)?.answer;
+      const statusClass = graded
+        ? (chosen && chosen === correct ? "ok" : (chosen ? "ng" : ""))
+        : "";
+
+      const activeClass = (activeBlankId === id) ? "active" : "";
+      const shownText = chosen ? `(${id}: ${chosen})` : display;
+
+      const re = new RegExp("\\{\\s*" + id + "\\s*\\}", "g");
+      html = html.replace(
+        re,
+        `<span class="blank ${activeClass} ${statusClass}" data-id="${id}" title="クリックして選択肢へ">${escapeHTML(shownText)}</span>`
+      );
+    });
+
+    return `<p>${html}</p>`;
+  }).join("");
+
+  elPassage.innerHTML = paragraphs;
+
+  elPassage.querySelectorAll(".blank").forEach((b) => {
+    b.addEventListener("click", () => setActiveBlank(Number(b.dataset.id)));
+  });
+}
+
+function renderOptionsOnly() {
+  if (!current) { elOptions.innerHTML = ""; return; }
+
+  elOptions.innerHTML = current.blanks.map((b) => {
+    const chosen = userAnswers[b.id];
+    const correct = b.answer;
+
+    let resultHTML = "";
+    if (graded) {
+      const ok = chosen === correct;
+      const whyWrong = b.why_wrong || null;
+
+      const wrongReasonHTML = (!ok && chosen && whyWrong && whyWrong[chosen])
+        ? `<div class="explain"><b>なぜダメ？</b> ${escapeHTML(whyWrong[chosen])}</div>`
+        : "";
+
+      resultHTML = `
+        <div class="resultLine">
+          ${ok ? `<span class="okText">✅ 正解</span>` : `<span class="ngText">❌ 不正解</span>`}
+          ${!ok ? `<div class="explain">正解：<b>${escapeHTML(correct)}</b></div>` : ``}
+          ${wrongReasonHTML}
+          <details open>
+            <summary>解説（根拠）</summary>
+            <div class="explain">${escapeHTML(b.explanation || "（解説は準備中）")}</div>
+          </details>
+        </div>
+      `;
+    }
+
+    const optsHTML = b.options.map((opt, i) => {
+      const checked = (chosen === opt) ? "checked" : "";
+      return `
+        <label class="opt">
+          <input type="radio" name="q-${b.id}" value="${escapeHTML(opt)}" ${checked} />
+          <div><div><b>${i + 1}</b> ${escapeHTML(opt)}</div></div>
+        </label>
+      `;
+    }).join("");
+
+    return `
+      <div class="qblock" id="qblock-${b.id}">
+        <div class="qhead">
+          <div class="qnum">(${b.id})</div>
+          <div class="hint">空所(${b.id})に入る最も適切なものを選んでください</div>
+        </div>
+        ${optsHTML}
+        ${resultHTML}
+      </div>
+    `;
+  }).join("");
+
+  elOptions.querySelectorAll('input[type="radio"]').forEach((r) => {
+    r.addEventListener("change", (e) => {
+      const name = e.target.name; // q-23
+      const id = Number(name.split("-")[1]);
+      userAnswers[id] = e.target.value;
+      activeBlankId = id;
+      renderPassageOnly();
+      renderOverall();
+    });
+  });
+}
+
+function renderOverall() {
+  if (!current) { elOverall.textContent = ""; return; }
+  const total = current.blanks.length;
+  const answered = Object.keys(userAnswers).length;
+
+  if (!graded) {
+    elOverall.innerHTML = `<span class="small">進捗：${answered}/${total} 問回答済み（未回答の空所は本文の( )のまま）</span>`;
+    return;
+  }
+
+  let correctCount = 0;
+  current.blanks.forEach((b) => { if (userAnswers[b.id] === b.answer) correctCount++; });
+
+  let extra = "";
+  if (answered < total) extra = ` <span class="small">※未回答あり</span>`;
+
+  elOverall.innerHTML = `<b>スコア：${correctCount}/${total}</b>${extra}　<span class="small">（間違いは解説→リセット→再挑戦が伸びる）</span>`;
+}
+
+function grade() {
+  if (!current) return;
+  graded = true;
+  render();
+}
+
+// -------------------- Vocab Modal --------------------
+const vocabOverlay = document.getElementById("vocabOverlay");
+const vocabList = document.getElementById("vocabList");
+const vocabTitle = document.getElementById("vocabTitle");
+
+document.getElementById("btnCloseVocab").addEventListener("click", closeVocab);
+document.getElementById("btnSpeakAllTerms").addEventListener("click", () => {
+  if (!current?.vocab?.length) return;
+  const texts = current.vocab.map(v => v.term);
+  speakQueue(texts, { rate: 0.98, lang: "en-US" });
+});
+document.getElementById("btnSpeakAllWithExamples").addEventListener("click", () => {
+  if (!current?.vocab?.length) return;
+  const texts = [];
+  current.vocab.forEach(v => {
+    texts.push(v.term);
+    if (v.ex) texts.push(v.ex);
+  });
+  speakQueue(texts, { rate: 0.98, lang: "en-US" });
+});
+document.getElementById("btnStopSpeech").addEventListener("click", stopSpeech);
+
+function openVocab() {
+  if (!current) return;
+  vocabTitle.textContent = `重要単語・フレーズ：${current.title}`;
+  renderVocab();
+  vocabOverlay.classList.add("open");
+}
+function closeVocab() { vocabOverlay.classList.remove("open"); }
+
+vocabOverlay.addEventListener("click", (e) => {
+  if (e.target === vocabOverlay) closeVocab();
+});
+
+function renderVocab() {
+  const list = current?.vocab || [];
+  if (!list.length) {
+    vocabList.innerHTML = `<div class="warn">このセットは単語リスト未収録です（必要なら追加できるよ）。</div>`;
+    return;
+  }
+
+  vocabList.innerHTML = list.map((v, idx) => {
+    return `
+      <div class="vocabItem">
+        <div class="vTop">
+          <div>
+            <div class="vTerm">${escapeHTML(v.term)}</div>
+            <div class="vJp">${escapeHTML(v.jp || "")}</div>
+          </div>
+          <div class="btnRow">
+            <button class="btnTiny" data-act="speakTerm" data-idx="${idx}">🔊 単語</button>
+            <button class="btnTiny" data-act="speakTermJp" data-idx="${idx}">🔊 単語→日本語</button>
+            <button class="btnTiny" data-act="speakExample" data-idx="${idx}">🔊 例文</button>
+          </div>
+        </div>
+        ${v.ex ? `<div class="vEx"><b>Example:</b> ${escapeHTML(v.ex)}</div>` : ``}
+      </div>
+    `;
+  }).join("");
+
+  vocabList.querySelectorAll("button.btnTiny").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const act = btn.dataset.act;
+      const idx = Number(btn.dataset.idx);
+      const v = (current.vocab || [])[idx];
+      if (!v) return;
+
+      if (act === "speakTerm") {
+        speakText(v.term, { rate: 0.98, lang: "en-US" });
+      } else if (act === "speakExample") {
+        speakText(v.ex || v.term, { rate: 0.98, lang: "en-US" });
+      } else if (act === "speakTermJp") {
+        // 英語→（少し間を置いて）日本語を読む（日本語音声は環境次第）
+        const seq = [v.term, v.jp ? v.jp : ""].filter(Boolean);
+        // 日本語をそれっぽく読ませるため、lang を切る
+        stopSpeech();
+        const part1 = new SpeechSynthesisUtterance(seq[0]);
+        part1.lang = "en-US"; part1.rate = 0.98;
+        const voice = pickEnglishVoice();
+        if (voice) part1.voice = voice;
+
+        const part2 = new SpeechSynthesisUtterance(seq[1] || "");
+        part2.lang = "ja-JP"; part2.rate = 1.0;
+
+        part1.onend = () => {
+          if (seq[1]) speechSynthesis.speak(part2);
+        };
+        speechSynthesis.speak(part1);
+      }
+    });
+  });
+}
+
+// -------------------- JP Modal --------------------
+const jpOverlay = document.getElementById("jpOverlay");
+const jpTitle = document.getElementById("jpTitle");
+const jpBody = document.getElementById("jpBody");
+
+document.getElementById("btnCloseJP").addEventListener("click", closeJP);
+document.getElementById("btnStopSpeech2").addEventListener("click", stopSpeech);
+document.getElementById("btnSpeakJPNote").addEventListener("click", () => {
+  speakText("Read the Japanese translation first, then go back to the English and justify every phrase.", { rate: 0.98, lang: "en-US" });
+});
+
+function openJP() {
+  if (!current) return;
+  jpTitle.textContent = `本文和訳：${current.title}`;
+  renderJP();
+  jpOverlay.classList.add("open");
+}
+function closeJP() { jpOverlay.classList.remove("open"); }
+
+jpOverlay.addEventListener("click", (e) => {
+  if (e.target === jpOverlay) closeJP();
+});
+
+function renderJP() {
+  const arr = current?.passage_jp || [];
+  if (!arr.length) {
+    jpBody.innerHTML = `<div class="warn">このセットは和訳未収録です（必要なら追加できるよ）。</div>`;
+    return;
+  }
+  jpBody.innerHTML = arr.map(p => `<p>${escapeHTML(p)}</p>`).join("");
+}
+
+// -------------------- Init --------------------
+loadRandom();
+</script>
+</body>
+</html>
